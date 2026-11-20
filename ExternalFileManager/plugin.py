@@ -22,9 +22,9 @@ class ExternalFileManager(mobase.IPluginTool):
     def author(self): return 'SavageBulldogOG'
     def description(self): return 'Open MO2 folders directly in OneCommander or another external file manager.'
     def tooltip(self): return 'Show external file manager status'
-    def version(self): return mobase.VersionInfo(0, 2, 1)
+    def version(self): return mobase.VersionInfo(0, 2, 2)
     def isActive(self): return True
-    def icon(self): return QIcon()
+    def icon(self): return QIcon(str(Path(__file__).parent / 'assets/app.svg'))
     def settings(self):
         return [
             mobase.PluginSetting('enabled', 'Redirect folder actions (restart MO2 after changing).', True),

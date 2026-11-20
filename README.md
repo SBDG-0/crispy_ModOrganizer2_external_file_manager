@@ -4,7 +4,7 @@
 
 Opens Mod Organizer 2 folders directly in OneCommander or another configured file manager, using MO2's existing folder commands.
 
-**Version:** 0.2.1
+**Version:** 0.2.2
 
 ## Features
 
@@ -64,6 +64,10 @@ Close MO2 and remove only its `plugins/ExternalFileManager` folder. If that fold
 - [OneCommander command-line reference](https://onecommander.com/help/3._Full_reference_guide/Starting_from_Command_line.html)
 
 ## Changelog
+
+### 0.2.2 — 2026-11-21
+
+- Added an app icon to External File Manager in MO2’s Tools menu.
 
 ### 0.2.1 — 2026-11-21
 
