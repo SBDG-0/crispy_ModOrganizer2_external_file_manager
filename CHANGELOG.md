@@ -2,6 +2,8 @@
 
 ## 0.2.0 — 2026-11-20
 
+- Added a reproducible clean-release bundler with an explicit runtime allowlist, removal of packaged self-test hooks, archive verification and SHA-256 checksums.
+
 - Added Images and Filetree buttons, Text/INI editor reveal buttons, all mod information conflict lists, and Filetree context-menu interception.
 - Added main Data and Downloads reveal commands and Saves Open in Explorer.
 - Open file targets in their containing directory, retaining disabled archive actions.

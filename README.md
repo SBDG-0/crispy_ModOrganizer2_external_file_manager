@@ -65,6 +65,14 @@ Run `python -m unittest discover -s tests -v` in an environment with PyQt6 insta
 
 See [changelog](CHANGELOG.md) and [test results](TESTING.md).
 
+## Clean release package
+
+Run `python bundle_release.py` from this repository with Python 3.9 or newer. No third-party packages are needed. The script reads the plugin version and creates `.releases/Crispy_MO2_External_File_Manager-<version>.zip` plus a SHA-256 checksum file. Existing same-version archives are preserved unless you pass `--force`.
+
+The ZIP contains only the six runtime modules, a release-specific README, the changelog, and any established license/notice files. Self-tests, reports, logs, caches, development documentation and the junction installer are excluded. Self-test startup hooks are removed from the archived plugin copy; development source and the live junction installation stay unchanged.
+
+Extract the archive and copy its `ExternalFileManager` folder into MO2's `plugins` directory with MO2 closed. The packaged README includes installation, settings and limitations. Generated releases are ignored by Git.
+
 ## References
 
 - [MO2 2.5.2 source](https://github.com/ModOrganizer2/modorganizer/tree/v2.5.2/src)

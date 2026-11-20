@@ -101,3 +101,7 @@ All these file-reveal commands open the containing folder, without automatic fil
 The local `ExternalFileManager/extended-selftest.json` report is ignored by Git because it includes user paths. Mode 2 records launches; mode 3 executes them. The test runner navigates secondary views; it preserves main mod-list selection, expansion and scroll position.
 
 The original 17 installed-runtime toolbar/mod-list checks were rerun on 0.2.0 with explicit checks active in optimized Python; all passed. The no-backup fixture limitation remains.
+
+## Clean release bundler
+
+Three standard-library packaging tests passed: exact clean archive contents with development source unchanged, deterministic rebuilds plus overwrite protection, and rejection of an unpackaged runtime dependency. The generated 0.2.0 archive was verified by reading back every entry and checking ZIP integrity. The package contains six runtime modules, README.md and CHANGELOG.md; no self-test modules, startup hooks, logs, reports or caches. No established license/notice file currently exists; future ones are preserved automatically. The installed development plugin was not changed or restarted for packaging.

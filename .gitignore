@@ -6,3 +6,4 @@ ExternalFileManager/live-selftest.json
 ExternalFileManager/extended-selftest.json
 README.pre-*.md
 .venv/
+.releases/
