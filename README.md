@@ -88,12 +88,4 @@ Licensed under the [MIT License](LICENSE). See the license file for the full ter
 
 ---
 
-## Reuse
-
-This software is provided “as is”, without warranty of any kind. You may use, modify, and distribute it, provided you credit SavageBulldogOG and include a link to this repository.
-
-[crispy_ModOrganizer2_external_file_manager](https://github.com/SBDG-0/crispy_ModOrganizer2_external_file_manager)
-
----
-
 made with ❤️ by SavageBulldogOG
