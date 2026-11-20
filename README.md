@@ -30,7 +30,11 @@ Back up an older plugin version before replacing it. Do not merge a release into
 
 Use the existing MO2 folder commands. Their original Explorer labels are retained for compatibility with MO2's translations.
 
+<img width="182" height="174" alt="Screenshot 2026-11-21 004749" src="https://github.com/user-attachments/assets/c29d8ae0-47ac-4e83-8bf0-bc10ba40a5e3" />
+
 Configure the plugin in **Tools → External File Manager**. These settings are also available in MO2's Plugins settings.
+
+<img width="636" height="232" alt="image" src="https://github.com/user-attachments/assets/c8eecf32-ec57-4388-b1ba-56b4a8d52518" />
 
 | Setting | Behavior |
 | --- | --- |
