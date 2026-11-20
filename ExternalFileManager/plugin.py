@@ -1,5 +1,4 @@
 import logging
-import os
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 import mobase
@@ -62,15 +61,6 @@ class ExternalFileManager(mobase.IPluginTool):
         if self.setting('enabled') is not False:
             try:
                 self.controller = Controller(self.organizer, window, self.setting)
-                if os.environ.get('CRISPY_EFM_SELFTEST') == '1':
-                    from .selftest import run
-                    QTimer.singleShot(1500, lambda: run(self.controller))
-                elif os.environ.get('CRISPY_EFM_SELFTEST') in ('2', '3'):
-                    from .extended_selftest import run
-                    QTimer.singleShot(1500, lambda: run(self.controller))
-                elif os.environ.get('CRISPY_EFM_SELFTEST') == '4':
-                    from .extended_selftest import run_admin
-                    QTimer.singleShot(1500, lambda: run_admin(self.controller))
             except Exception: logger.exception('External File Manager initialization failed')
 
     def setParentWidget(self, widget): self.parent = widget

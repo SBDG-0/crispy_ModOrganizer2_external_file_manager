@@ -2,83 +2,97 @@
 
 ## Description
 
-Opens Mod Organizer 2 folders directly in OneCommander or another configured file manager. For MO2 2.5.2 users who want to use the existing folder commands without opening Windows Explorer first.
+Opens Mod Organizer 2 folders directly in OneCommander or another configured file manager, using MO2's existing folder commands.
+
+**Version:** 0.2.1
 
 ## Features
 
-- Redirects all eleven existing folder dropdown commands.
-- Redirects mod **Open in Explorer** commands, including multiple selected mods, backups, and Overwrite.
-- Redirects Images and Filetree buttons, Text/INI editor reveal buttons, and mod information conflict/filetree context menus.
-- Redirects the three Instance Manager Explore buttons, Settings → Theme → Explore, and Log → Open logs folder.
-- Redirects Data and Downloads **Reveal in Explorer** and Saves **Open in Explorer**.
-- Redirects **Ctrl+double-click** and **Ctrl+Enter** in the mod list.
-- Supports an optional extra shortcut while the mod list has focus.
-- Sends one launch request per distinct folder; no Explorer fallback.
-- Uses the OneCommander path from your registered default folder handler, or an explicit executable you choose. Other managers accept configurable arguments.
+- Toolbar folder dropdown and mod **Open in Explorer** commands, including multiple selected mods, backups, and Overwrite.
+- **Ctrl+double-click**, **Ctrl+Enter**, and an optional shortcut in the mod list.
+- Mod information Images, Text/INI, Conflicts, and Filetree folder commands.
+- Data, Saves, and Downloads reveal commands.
+- Instance Manager Explore buttons, Settings → Theme → Explore, and Log → Open logs folder.
+- One launch per distinct folder, with errors reported instead of falling back to Explorer.
 
 ## Requirements and installation
 
-Requires MO2 2.5.2 with its bundled Python/PyQt6 plugin support and a working external file manager. Other MO2 versions are unverified.
+Requires **Mod Organizer 2.5.2** with its bundled Python/PyQt6 plugin support and a working external file manager. Other MO2 versions are unverified.
 
-With MO2 closed, place the `ExternalFileManager` folder inside MO2's `plugins` directory, or create a Windows directory junction to the repository's `ExternalFileManager` folder. Refuse an existing destination rather than replacing it. Restart MO2.
+1. Close MO2.
+2. Extract the release ZIP and copy its `ExternalFileManager` folder into MO2's `plugins` directory.
+3. Restart MO2 and open **Tools → External File Manager**.
+4. Choose your file manager and executable, then save.
 
-The local development install uses a junction at `I:\.other.games\Mod.Organizer-2.5.2\plugins\ExternalFileManager` pointing to this repository's plugin folder. Existing plugins are retained.
+Back up an older plugin version before replacing it. Do not merge a release into a directory junction used for another installation.
 
-## Usage and configuration
+## Usage and settings
 
-Use MO2's existing folder dropdown or mod **Open in Explorer** command. The original label is retained for compatibility with MO2 translations. The Tools menu's **External File Manager** window shows attachment status and editable settings.
+Use the existing MO2 folder commands. Their original Explorer labels are retained for compatibility with MO2's translations.
 
-Open **Tools → External File Manager** to configure and save settings. They also remain available under **Settings → Plugins → ExternalFileManager**:
+Configure the plugin in **Tools → External File Manager**. These settings are also available in MO2's Plugins settings.
 
 | Setting | Behavior |
 | --- | --- |
-| `enabled` | Enable interception. Restart after changing. |
-| `manager` | `auto`, `onecommander`, or `custom`. |
-| `executable` | Full `.exe` path. Used explicitly in `onecommander`/`custom` modes and as the fallback in `auto`. |
-| `arguments` | Custom mode only: JSON string array containing `{path}`. Example: `["{path}"]`. |
-| `shortcut` | Optional extra shortcut, for example `Alt+O`. Empty disables it. Changes saved in the Tools window apply immediately. |
+| Redirect MO2 folder commands | Enable or disable the plugin's redirection. Restart MO2 after changing. |
+| File manager | Automatic registered OneCommander, explicit OneCommander executable, or another manager with custom arguments. |
+| Executable | Full path to the file manager's `.exe`. |
+| Custom arguments (JSON) | For other managers, enter a JSON array containing `{path}`, for example `["{path}"]`. Each element is one argument. |
+| Mod-list shortcut | Optional shortcut such as `Alt+O`. Leave empty to disable. Changes saved here apply immediately. |
 
-`auto` accepts an existing OneCommander executable only from the current user's explicitly registered Directory default verb. It invokes that executable directly with OneCommander's documented arguments; it does not call Windows' shell or change the registry. If the association cannot be verified, it uses the configured executable. If that is missing, it reports an error.
+Automatic mode uses OneCommander when it can verify the Windows folder association and executable. Otherwise it uses the configured executable; a missing executable produces an error. The plugin does not change Windows associations or OneCommander settings.
 
-For this installation, OneCommander was found at `H:\Program Files\OneCommander\OneCommander.exe`. Select `onecommander` to pin that explicit path independently of Windows associations.
+OneCommander opens folders in **new tabs**, following its existing **Switch to new tab** preference. To reuse the current tab instead, choose the custom manager option, keep the OneCommander executable, and use `["-o", "{path}"]`.
 
-OneCommander mode uses `-o {path} -newtab`. New tabs follow OneCommander's **Switch to new tab** preference. That preference is disabled in this user's installation and was deliberately retained, so folders open in background tabs. The plugin does not change OneCommander settings or add a second launch to force focus. To reuse the current tab, select `custom`, keep the OneCommander executable, and set arguments to `["-o", "{path}"]`.
+## Compatibility and limitations
 
-For another manager, choose `custom`, its executable, and the arguments that manager documents. Each JSON element is one argument: do not add shell quoting, commands, or environment assignments. Folder names containing spaces or Unicode are passed as a single argument.
-
-## Compatibility and limits
-
-- This is targeted interception of known MO2 menus and gestures, not a universal replacement for every Windows folder operation. File dialogs, third-party plugins, native Windows shell context menus, and unrelated dialogs are outside scope. Images, Text/INI editors, Conflicts, Filetree, the main Data/Saves/Downloads views, Instance Manager Explore buttons, Theme Explore, and the log folder menu are covered.
-- Separators are skipped. Foreign mods are skipped in context menus, following MO2's behavior. Ctrl+double-click may open their actual directory, as MO2 does.
-- Reveal commands open the containing directory. They do not automatically select the file in the external manager. Disabled archive-reveal actions stay disabled.
-- Missing folders and invalid settings produce an error without launching Explorer.
-- Matching uses the native translated labels and known menu ownership. Unrecognized or changed menus are left alone. Check attachment status after changing MO2 versions or other UI plugins.
-- The plugin uses private UI details verified against 2.5.2. See [test results and development checks](TESTING.md).
-- Diagnostic logs, including requested folder paths, rotate locally inside the plugin folder. Nothing is uploaded.
+- Reveal commands open the containing folder; they do not automatically select the file.
+- Disabled archive-reveal actions remain disabled. Separators are skipped, and mod context menus skip foreign mods as MO2 does.
+- Backup support is implemented but has not been verified by clicking an actual backup mod in a live instance.
+- Other file managers are configurable but have not been verified individually.
+- Third-party plugins, native Windows shell context menus, file dialogs, and unrelated dialogs are outside scope.
+- If MO2's interface changes in another version, some commands may remain native. Check the attachment status in the tool window.
+- Diagnostic logs rotate locally inside the plugin folder and include requested folder paths. Nothing is uploaded.
 
 ## Removal
 
-Close MO2. Remove only the `plugins\ExternalFileManager` junction using a junction-aware, non-recursive operation; retain the repository and other plugin folders. After restart, native MO2 commands return. Alternatively disable this plugin and restart MO2.
-
-## Development
-
-Run `python -m unittest discover -s tests -v` in an environment with PyQt6 installed. Tests use Qt's offscreen platform. For opt-in checks inside installed MO2, start that process with `CRISPY_EFM_SELFTEST=1`; the runner writes `ExternalFileManager/live-selftest.json` and records external launches instead of executing them. It restores the main mod-list selection, expansion and scroll position. Mode `2` checks the additional views with a launch recorder; mode `3` performs real external launches. Mode `4` exercises the Instance Manager, Theme and Log routes with real external launches. Modes `2` and `3` require `CRISPY_EFM_TEST_MOD` naming an existing mod with images and conflicts. These probes navigate secondary tabs and lists. Never leave these variables enabled for normal use.
-
-See [changelog](CHANGELOG.md) and [test results](TESTING.md).
-
-## Clean release package
-
-Run `python bundle_release.py` from this repository with Python 3.9 or newer. No third-party packages are needed. The script reads the plugin version and creates `.releases/Crispy_MO2_External_File_Manager-<version>.zip` plus a SHA-256 checksum file. Existing same-version archives are preserved unless you pass `--force`.
-
-The ZIP contains only the six runtime modules, a release-specific README, the changelog, and any established license/notice files. Self-tests, reports, logs, caches, development documentation and the junction installer are excluded. Self-test startup hooks are removed from the archived plugin copy; development source and the live junction installation stay unchanged.
-
-Extract the archive and copy its `ExternalFileManager` folder into MO2's `plugins` directory with MO2 closed. The packaged README includes installation, settings and limitations. Generated releases are ignored by Git.
+Close MO2 and remove only its `plugins/ExternalFileManager` folder. If that folder is a directory junction, remove only the junction and retain its target. Restart MO2 to restore native folder commands. Alternatively disable redirection and restart.
 
 ## References
 
-- [MO2 2.5.2 source](https://github.com/ModOrganizer2/modorganizer/tree/v2.5.2/src)
-- [MO2 plugin API source](https://github.com/ModOrganizer2/modorganizer-uibase/tree/v2.5.2/src)
+- [MO2](https://github.com/ModOrganizer2/modorganizer)
 - [OneCommander command-line reference](https://onecommander.com/help/3._Full_reference_guide/Starting_from_Command_line.html)
+
+## Changelog
+
+### 0.2.1 — 2026-11-21
+
+- Added Instance Manager Explore buttons, Theme Explore, and Open logs folder.
+- Simplified the External File Manager settings window.
+
+### 0.2.0 — 2026-11-20
+
+- Added mod information Images, Text/INI, Conflicts, and Filetree commands.
+- Added Data, Saves, and Downloads reveal commands.
+- Added editable settings to Tools → External File Manager.
+
+### 0.1.0 — 2026-11-20
+
+- Added direct OneCommander and configurable external file manager support.
+- Added toolbar and mod context menus, Ctrl+double-click, Ctrl+Enter, and an optional shortcut.
+- Added support for multiple selected mods, backups, and Overwrite.
+
+## License
+
+Licensed under the [MIT License](LICENSE). See the license file for the full terms.
+
+---
+
+## Reuse
+
+This software is provided “as is”, without warranty of any kind. You may use, modify, and distribute it, provided you credit SavageBulldogOG and include a link to this repository.
+
+[crispy_ModOrganizer2_external_file_manager](https://github.com/SBDG-0/crispy_ModOrganizer2_external_file_manager)
 
 ---
 
