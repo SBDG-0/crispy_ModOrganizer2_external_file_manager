@@ -23,7 +23,7 @@ class ExternalFileManager(mobase.IPluginTool):
     def author(self): return 'SavageBulldogOG'
     def description(self): return 'Open MO2 folders directly in OneCommander or another external file manager.'
     def tooltip(self): return 'Show external file manager status'
-    def version(self): return mobase.VersionInfo(0, 1, 0)
+    def version(self): return mobase.VersionInfo(0, 2, 0)
     def isActive(self): return True
     def icon(self): return QIcon()
     def settings(self):
@@ -65,18 +65,16 @@ class ExternalFileManager(mobase.IPluginTool):
                 if os.environ.get('CRISPY_EFM_SELFTEST') == '1':
                     from .selftest import run
                     QTimer.singleShot(1500, lambda: run(self.controller))
+                elif os.environ.get('CRISPY_EFM_SELFTEST') in ('2', '3'):
+                    from .extended_selftest import run
+                    QTimer.singleShot(1500, lambda: run(self.controller))
             except Exception: logger.exception('External File Manager initialization failed')
 
     def setParentWidget(self, widget): self.parent = widget
 
     def display(self):
-        c = self.controller
-        QMessageBox.information(self.parent, 'External File Manager',
-            f'Manager: {self.setting("manager")}\nExecutable: {self.setting("executable")}\n'
-            f'Mod list: {bool(c and c.tree)}\nFolder toolbar: {bool(c and c.button)}\n\n'
-            'Configure under Settings → Plugins → ExternalFileManager.\n'
-            'Existing folder actions, Ctrl+double-click and Ctrl+Enter open directly.\n'
-            'Launch errors are reported without an Explorer fallback.')
+        from .settings_dialog import SettingsDialog
+        SettingsDialog(self).exec()
 
 
 def createPlugin(): return ExternalFileManager()

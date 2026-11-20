@@ -6,13 +6,11 @@ The test restores the selection and scroll position and writes a local report.
 import json
 from pathlib import Path
 import traceback
-
 from PyQt6.QtCore import Qt, QItemSelectionModel, QEvent, QPointF
 from PyQt6.QtGui import QContextMenuEvent, QMouseEvent, QKeyEvent
 from PyQt6.QtCore import QTimer, QCoreApplication
 from PyQt6.QtWidgets import QApplication, QMenu
 from . import controller as module
-
 
 def run(c):
     tree = c.tree
@@ -27,18 +25,14 @@ def run(c):
     original_shortcut = c.setting
     original_shortcuts = list(c.shortcuts)
     module.launch = lambda argv: calls.append(argv)
-
-    # Do not let an error dialog stall unattended developer checks.
     original_warning = module.QMessageBox.warning
     module.QMessageBox.warning = lambda parent, title, text: errors.append(text)
 
     def check(name, fn):
-        before, error_count = len(calls), len(errors)
+        before, error_count = (len(calls), len(errors))
         try:
             detail = fn()
-            results.append({'case': name, 'ok': len(errors) == error_count,
-                            'launches': len(calls) - before, 'detail': detail,
-                            'errors': errors[error_count:]})
+            results.append({'case': name, 'ok': len(errors) == error_count, 'launches': len(calls) - before, 'detail': detail, 'errors': errors[error_count:]})
         except Exception:
             results.append({'case': name, 'ok': False, 'error': traceback.format_exc()})
 
@@ -49,14 +43,14 @@ def run(c):
             index = tree.model().index(row, 0, parent)
             yield index
             yield from indexes(index)
-
     names = c.organizer.modList().allMods()
     info_rows = []
     for index in indexes():
         identity = index.data(257)
         if isinstance(identity, int) and 0 <= identity < len(names):
             info = c.organizer.modList().getMod(names[identity])
-            if info: info_rows.append((index, info))
+            if info:
+                info_rows.append((index, info))
     regular = [i for i, info in info_rows if not (info.isSeparator() or info.isForeign() or info.isOverwrite() or info.isBackup())]
     saved_expansion = [(i, tree.isExpanded(i)) for i, _ in info_rows]
     overwrite = [i for i, info in info_rows if info.isOverwrite()]
@@ -75,6 +69,7 @@ def run(c):
         tree.scrollTo(index)
         position = tree.visualRect(index).center()
         captured = []
+
         def activate():
             menu = QApplication.activePopupWidget()
             if not isinstance(menu, QMenu):
@@ -90,56 +85,67 @@ def run(c):
         QTimer.singleShot(80, activate)
         event = QContextMenuEvent(QContextMenuEvent.Reason.Mouse, position, tree.viewport().mapToGlobal(position))
         QApplication.sendEvent(tree.viewport(), event)
-        assert captured and captured[0] == 'Native context menu action replaced', captured
+        if not (captured and captured[0] == 'Native context menu action replaced'):
+            raise AssertionError(captured)
         expected = len({str(Path(p)).lower() for p in c.paths(rows)})
-        assert len(calls) - before == expected, (len(calls) - before, expected)
+        if not len(calls) - before == expected:
+            raise AssertionError((len(calls) - before, expected))
         return expected
-
     try:
         menu = c.button.menu()
         menu.show()
         QCoreApplication.processEvents()
         menu.hide()
         for action in menu.actions():
-            if action.isSeparator(): continue
+            if action.isSeparator():
+                continue
+
             def trigger(a=action):
-                assert a.property('externalFileManager'), a.text()
+                if not a.property('externalFileManager'):
+                    raise AssertionError(a.text())
                 a.trigger()
                 return a.text()
             check('toolbar:' + action.text(), trigger)
-
         if regular:
             check('native-context-regular', lambda: context(regular[:1]))
-            if len(regular) >= 2: check('native-context-multiselection', lambda: context(regular[:2]))
+            if len(regular) >= 2:
+                check('native-context-multiselection', lambda: context(regular[:2]))
             select(regular[:1])
             tree.scrollTo(regular[0])
+
             def double_click():
                 before = len(calls)
                 position = QPointF(tree.visualRect(regular[0]).center())
-                event = QMouseEvent(QEvent.Type.MouseButtonDblClick, position, position,
-                                    Qt.MouseButton.LeftButton, Qt.MouseButton.LeftButton,
-                                    Qt.KeyboardModifier.ControlModifier)
+                event = QMouseEvent(QEvent.Type.MouseButtonDblClick, position, position, Qt.MouseButton.LeftButton, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.ControlModifier)
                 QApplication.sendEvent(tree.viewport(), event)
-                assert len(calls) - before == 1
+                if not len(calls) - before == 1:
+                    raise AssertionError('Check failed')
             check('ctrl-double-click', double_click)
+
             def ctrl_enter():
                 before = len(calls)
                 event = QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_Return, Qt.KeyboardModifier.ControlModifier)
                 QApplication.sendEvent(tree, event)
-                assert len(calls) - before == 1
+                if not len(calls) - before == 1:
+                    raise AssertionError('Check failed')
             check('ctrl-enter', ctrl_enter)
+
             def shortcut():
                 c.setting = lambda key: 'Alt+Shift+O' if key == 'shortcut' else original_shortcut(key)
                 c.configure_shortcut()
-                # QAction activation is deterministic even when another desktop app has focus.
-                assert c.shortcuts[-1].shortcut().toString() == 'Alt+Shift+O'
+                if not c.shortcuts[-1].shortcut().toString() == 'Alt+Shift+O':
+                    raise AssertionError('Check failed')
                 before = len(calls)
                 c.shortcuts[-1].trigger()
-                assert len(calls) - before == 1
+                if not len(calls) - before == 1:
+                    raise AssertionError('Check failed')
             check('configurable-shortcut-action', shortcut)
-        if overwrite: check('native-context-overwrite', lambda: context(overwrite[:1]))
-        if backups: check('native-context-backup', lambda: context(backups[:1]))
-        else: results.append({'case': 'native-context-backup', 'ok': None, 'detail': 'No existing backup mod; no fixture added to user instance.'})
+        if overwrite:
+            check('native-context-overwrite', lambda: context(overwrite[:1]))
+        if backups:
+            check('native-context-backup', lambda: context(backups[:1]))
+        else:
+            results.append({'case': 'native-context-backup', 'ok': None, 'detail': 'No existing backup mod; no fixture added to user instance.'})
     finally:
         module.launch = original_launch
         module.QMessageBox.warning = original_warning
@@ -153,6 +159,5 @@ def run(c):
         for index, expanded in saved_expansion:
             tree.setExpanded(index, expanded)
         tree.verticalScrollBar().setValue(saved_scroll)
-        report = {'runtime': 'Installed MO2 / embedded Python / PyQt6', 'results': results,
-                  'captured_commands': calls, 'external_processes_started_by_test': 0}
+        report = {'runtime': 'Installed MO2 / embedded Python / PyQt6', 'results': results, 'captured_commands': calls, 'external_processes_started_by_test': 0}
         (Path(__file__).parent / 'live-selftest.json').write_text(json.dumps(report, indent=2), encoding='utf-8')

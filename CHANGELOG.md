@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 — 2026-11-20
+
+- Added Images and Filetree buttons, Text/INI editor reveal buttons, all mod information conflict lists, and Filetree context-menu interception.
+- Added main Data and Downloads reveal commands and Saves Open in Explorer.
+- Open file targets in their containing directory, retaining disabled archive actions.
+- Added editable settings, executable browsing, validation, Save and Cancel to Tools → External File Manager, alongside status information.
+- Apply shortcut changes from the Tools window immediately; preserve OneCommander new-tab and focus preferences.
+- Follow native button enable-state changes and handle MO2's root-relative conflict paths.
+- Added broader regression checks and native-view test modes; keep checks active under MO2's optimized Python runtime.
+
 ## 0.1.0 — 2026-11-20
 
 - Added direct OneCommander and configurable external-manager launching.

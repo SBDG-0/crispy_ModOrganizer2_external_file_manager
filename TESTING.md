@@ -72,4 +72,32 @@ See [official command-line reference](https://onecommander.com/help/3._Full_refe
 
 ## Scope and remaining limits
 
-No global shell handler, Explorer process hook, MO2 executable patch, or system association change is installed. The plugin covers the requested toolbar/mod-list routes plus Ctrl+Enter. Unrelated Data tab file selection/reveal commands, file dialogs and third-party plugins remain native. Other external managers are configurable but were not installed or exercised in this task. Non-English MO2 and a language switch are source-supported but not live-tested.
+No global shell handler, Explorer process hook, MO2 executable patch, or system association change is installed. The plugin covers the requested toolbar/mod-list routes plus Ctrl+Enter. As of 0.2.0 the main Data, Saves and Downloads reveal commands and listed mod information routes are covered. File dialogs, third-party plugins, native shell menus and unrelated dialogs remain native. Other external managers are configurable but were not installed or exercised in this task. Non-English MO2 and a language switch are source-supported but not live-tested.
+
+
+## 0.2.0 expanded coverage — 2026-11-20
+
+The user's follow-up identified Explorer entry points outside the initial toolbar/mod-list scope. The following source adapters were added:
+
+- `modinfodialogimages.cpp`: selected image path from `imagesPath`; replace `imagesExplore` before interaction.
+- `modinfodialogfiletree.cpp`: `QFileSystemModel` provides the current mod root and selected real path; replace `openInExplorer` and the context action.
+- `modinfodialogconflicts.cpp` / `modinfodialogconflictsmodels.cpp`: all four lists expose a root-relative file path (column 0 for general lists, column 1 for advanced). MO2 concatenates these leading-slash paths with the mod root. Parentless native menus are associated with their immediate context event.
+- `texteditor.cpp`: replace the Text/INI editor's default reveal QAction using its read-only path field. Retain enabled-state updates from the original action.
+- `filetreemodel.cpp`: the Data tree's HTML tooltip exposes an escaped real path. Parse its translated Real path field; retain disabled archive actions.
+- `savestab.cpp`: resolve the native relative save-file column using the current profile's local save path or the game's save directory/INI override.
+- `downloadlistview.cpp`: replace Reveal in Explorer and open the organizer's configured downloads directory; metadata display names are not used as filenames.
+
+All these file-reveal commands open the containing folder, without automatic file selection. Native Explorer callbacks are not invoked. Buttons are replaced as widgets (or default actions) rather than given an additional clicked callback; hidden originals remain owned by MO2 for its tab updates.
+
+### Validation
+
+- 22 offscreen Qt tests passed, including the original nine regressions, all four conflict models with leading-slash paths, escaped Unicode Data paths, filetree root/selected file, Downloads, global/profile-local/INI-overridden Saves, native-button suppression and enabled-state synchronization, Text/INI actions, settings Save/Cancel, and validation failure without writes.
+- Nine checks passed inside installed MO2 with a recording launcher, then passed with real OneCommander launches: Filetree root button, Filetree context menu, overwritten/nonconflicting/advanced conflict context menus, Images button after actual thumbnail selection, Downloads, Saves, and Data reveal. Every action produced exactly one request, and the final real-launch report had zero warnings. The test mod was the existing `Stealth_Overhaul_Reworked`; no test files or mods were added to the instance.
+- No Explorer window appeared in the real-launch checks. As before, there is no independent OS-wide process trace; verification combines direct launching, native-handler suppression tests, request counts and window observations.
+- The new Tools settings dialog was visually inspected in installed MO2 and Save was exercised without changing the user's chosen values. The final normal restart checks persisted settings and attachment.
+- The general overwrite/winning conflict list had no rows in the selected live test mod; its adapter passed the offscreen test. Text/INI buttons passed a Qt default-action replacement test; they were not clicked in a live mod containing text/INI preview files during this pass.
+- Initial expanded-view checks caught native-button wrapper lifetime and leading-slash path issues. The installed runner was also corrected to use explicit checks because MO2 runs optimized Python, which strips ordinary assert statements. The expanded tests were rerun after these corrections; only the corrected successful run is counted above.
+
+The local `ExternalFileManager/extended-selftest.json` report is ignored by Git because it includes user paths. Mode 2 records launches; mode 3 executes them. The test runner navigates secondary views; it preserves main mod-list selection, expansion and scroll position.
+
+The original 17 installed-runtime toolbar/mod-list checks were rerun on 0.2.0 with explicit checks active in optimized Python; all passed. The no-backup fixture limitation remains.

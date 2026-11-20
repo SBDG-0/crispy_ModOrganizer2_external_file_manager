@@ -8,6 +8,7 @@ from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtWidgets import QApplication, QMenu, QWidget, QTreeView, QMessageBox
 
 from .launcher import command, launch, registered_onecommander
+from .extended import Extended
 
 LOG = logging.getLogger('ExternalFileManager')
 FOLDERS = (
@@ -28,6 +29,7 @@ class Controller(QObject):
         self.button = window.findChild(QWidget, 'openFolderMenu')
         self.context_index = None
         self.shortcuts = []
+        self.extended = Extended(self)
         QApplication.instance().installEventFilter(self)
         self.configure_shortcut()
         LOG.info('External File Manager attached: modList=%s folderButton=%s', bool(self.tree), bool(self.button))
@@ -116,6 +118,7 @@ class Controller(QObject):
         # Leave the native object and its C++ connections intact, but unreachable from this menu.
 
     def patch_menu(self, menu):
+        self.extended.patch_menu(menu)
         if self.button is not None and self.button.menu() is menu:
             mapping = {self.translated('MainWindow', text): key for text, key in FOLDERS}
             for action in list(menu.actions()):
@@ -135,6 +138,10 @@ class Controller(QObject):
                     self.replace(menu, action, resolver, 'mod-context')
 
     def configure_shortcut(self):
+        for old in self.shortcuts:
+            self.tree.removeAction(old)
+            old.deleteLater()
+        self.shortcuts = []
         sequence = QKeySequence(str(self.setting('shortcut') or ''))
         if sequence.isEmpty() or self.tree is None: return
         action = QAction(self.tree)
@@ -152,6 +159,7 @@ class Controller(QObject):
             self.button = None
         try:
             kind = event.type()
+            self.extended.event(obj, event)
             if kind == QEvent.Type.Show and isinstance(obj, QMenu):
                 self.patch_menu(obj)
             if self.tree is not None and obj in (self.tree, self.tree.viewport()):

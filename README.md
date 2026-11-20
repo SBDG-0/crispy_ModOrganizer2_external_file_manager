@@ -8,6 +8,8 @@ Opens Mod Organizer 2 folders directly in OneCommander or another configured fil
 
 - Redirects all eleven existing folder dropdown commands.
 - Redirects mod **Open in Explorer** commands, including multiple selected mods, backups, and Overwrite.
+- Redirects Images and Filetree buttons, Text/INI editor reveal buttons, and mod information conflict/filetree context menus.
+- Redirects Data and Downloads **Reveal in Explorer** and Saves **Open in Explorer**.
 - Redirects **Ctrl+double-click** and **Ctrl+Enter** in the mod list.
 - Supports an optional extra shortcut while the mod list has focus.
 - Sends one launch request per distinct folder; no Explorer fallback.
@@ -23,9 +25,9 @@ The local development install uses a junction at `I:\.other.games\Mod.Organizer-
 
 ## Usage and configuration
 
-Use MO2's existing folder dropdown or mod **Open in Explorer** command. The original label is retained for compatibility with MO2 translations. The Tools menu's **External File Manager** entry shows attachment status.
+Use MO2's existing folder dropdown or mod **Open in Explorer** command. The original label is retained for compatibility with MO2 translations. The Tools menu's **External File Manager** window shows attachment status and editable settings.
 
-Open **Settings → Plugins → ExternalFileManager** to configure:
+Open **Tools → External File Manager** to configure and save settings. They also remain available under **Settings → Plugins → ExternalFileManager**:
 
 | Setting | Behavior |
 | --- | --- |
@@ -33,7 +35,7 @@ Open **Settings → Plugins → ExternalFileManager** to configure:
 | `manager` | `auto`, `onecommander`, or `custom`. |
 | `executable` | Full `.exe` path. Used explicitly in `onecommander`/`custom` modes and as the fallback in `auto`. |
 | `arguments` | Custom mode only: JSON string array containing `{path}`. Example: `["{path}"]`. |
-| `shortcut` | Optional extra shortcut, for example `Alt+O`. Empty disables it. Restart after changing. |
+| `shortcut` | Optional extra shortcut, for example `Alt+O`. Empty disables it. Changes saved in the Tools window apply immediately. |
 
 `auto` accepts an existing OneCommander executable only from the current user's explicitly registered Directory default verb. It invokes that executable directly with OneCommander's documented arguments; it does not call Windows' shell or change the registry. If the association cannot be verified, it uses the configured executable. If that is missing, it reports an error.
 
@@ -45,8 +47,9 @@ For another manager, choose `custom`, its executable, and the arguments that man
 
 ## Compatibility and limits
 
-- This is targeted interception of known MO2 menus and gestures, not a universal replacement for every Windows folder operation. File dialogs, Data tab file-reveal commands, third-party plugins, and unrelated dialogs are outside scope.
+- This is targeted interception of known MO2 menus and gestures, not a universal replacement for every Windows folder operation. File dialogs, third-party plugins, native Windows shell context menus, and unrelated dialogs are outside scope. Images, Text/INI editors, Conflicts, Filetree, and the main Data/Saves/Downloads views are covered.
 - Separators are skipped. Foreign mods are skipped in context menus, following MO2's behavior. Ctrl+double-click may open their actual directory, as MO2 does.
+- Reveal commands open the containing directory. They do not automatically select the file in the external manager. Disabled archive-reveal actions stay disabled.
 - Missing folders and invalid settings produce an error without launching Explorer.
 - Matching uses the native translated labels and known menu ownership. Unrecognized or changed menus are left alone. Check attachment status after changing MO2 versions or other UI plugins.
 - The plugin uses private UI details verified against 2.5.2. See [test results and development checks](TESTING.md).
@@ -58,7 +61,7 @@ Close MO2. Remove only the `plugins\ExternalFileManager` junction using a juncti
 
 ## Development
 
-Run `python -m unittest discover -s tests -v` in an environment with PyQt6 installed. Tests use Qt's offscreen platform. For opt-in checks inside installed MO2, start that process with `CRISPY_EFM_SELFTEST=1`; the runner writes `ExternalFileManager/live-selftest.json` and records external launches instead of executing them. It restores selection and scroll position. Never leave that variable enabled for normal use.
+Run `python -m unittest discover -s tests -v` in an environment with PyQt6 installed. Tests use Qt's offscreen platform. For opt-in checks inside installed MO2, start that process with `CRISPY_EFM_SELFTEST=1`; the runner writes `ExternalFileManager/live-selftest.json` and records external launches instead of executing them. It restores the main mod-list selection, expansion and scroll position. Mode `2` checks the additional views with a launch recorder; mode `3` performs real external launches. Both require `CRISPY_EFM_TEST_MOD` naming an existing mod with images and conflicts. These probes navigate secondary tabs and lists. Never leave these variables enabled for normal use.
 
 See [changelog](CHANGELOG.md) and [test results](TESTING.md).
 
