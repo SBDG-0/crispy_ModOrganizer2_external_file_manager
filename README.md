@@ -9,6 +9,7 @@ Opens Mod Organizer 2 folders directly in OneCommander or another configured fil
 - Redirects all eleven existing folder dropdown commands.
 - Redirects mod **Open in Explorer** commands, including multiple selected mods, backups, and Overwrite.
 - Redirects Images and Filetree buttons, Text/INI editor reveal buttons, and mod information conflict/filetree context menus.
+- Redirects the three Instance Manager Explore buttons, Settings → Theme → Explore, and Log → Open logs folder.
 - Redirects Data and Downloads **Reveal in Explorer** and Saves **Open in Explorer**.
 - Redirects **Ctrl+double-click** and **Ctrl+Enter** in the mod list.
 - Supports an optional extra shortcut while the mod list has focus.
@@ -47,7 +48,7 @@ For another manager, choose `custom`, its executable, and the arguments that man
 
 ## Compatibility and limits
 
-- This is targeted interception of known MO2 menus and gestures, not a universal replacement for every Windows folder operation. File dialogs, third-party plugins, native Windows shell context menus, and unrelated dialogs are outside scope. Images, Text/INI editors, Conflicts, Filetree, and the main Data/Saves/Downloads views are covered.
+- This is targeted interception of known MO2 menus and gestures, not a universal replacement for every Windows folder operation. File dialogs, third-party plugins, native Windows shell context menus, and unrelated dialogs are outside scope. Images, Text/INI editors, Conflicts, Filetree, the main Data/Saves/Downloads views, Instance Manager Explore buttons, Theme Explore, and the log folder menu are covered.
 - Separators are skipped. Foreign mods are skipped in context menus, following MO2's behavior. Ctrl+double-click may open their actual directory, as MO2 does.
 - Reveal commands open the containing directory. They do not automatically select the file in the external manager. Disabled archive-reveal actions stay disabled.
 - Missing folders and invalid settings produce an error without launching Explorer.
@@ -61,7 +62,7 @@ Close MO2. Remove only the `plugins\ExternalFileManager` junction using a juncti
 
 ## Development
 
-Run `python -m unittest discover -s tests -v` in an environment with PyQt6 installed. Tests use Qt's offscreen platform. For opt-in checks inside installed MO2, start that process with `CRISPY_EFM_SELFTEST=1`; the runner writes `ExternalFileManager/live-selftest.json` and records external launches instead of executing them. It restores the main mod-list selection, expansion and scroll position. Mode `2` checks the additional views with a launch recorder; mode `3` performs real external launches. Both require `CRISPY_EFM_TEST_MOD` naming an existing mod with images and conflicts. These probes navigate secondary tabs and lists. Never leave these variables enabled for normal use.
+Run `python -m unittest discover -s tests -v` in an environment with PyQt6 installed. Tests use Qt's offscreen platform. For opt-in checks inside installed MO2, start that process with `CRISPY_EFM_SELFTEST=1`; the runner writes `ExternalFileManager/live-selftest.json` and records external launches instead of executing them. It restores the main mod-list selection, expansion and scroll position. Mode `2` checks the additional views with a launch recorder; mode `3` performs real external launches. Mode `4` exercises the Instance Manager, Theme and Log routes with real external launches. Modes `2` and `3` require `CRISPY_EFM_TEST_MOD` naming an existing mod with images and conflicts. These probes navigate secondary tabs and lists. Never leave these variables enabled for normal use.
 
 See [changelog](CHANGELOG.md) and [test results](TESTING.md).
 

@@ -8,6 +8,81 @@ from PyQt6.QtGui import QContextMenuEvent, QMouseEvent
 from PyQt6.QtWidgets import QApplication, QMenu, QDialog, QAbstractItemView, QToolButton, QLineEdit, QTabWidget, QWidget
 from . import controller as module
 
+
+def run_admin(c):
+    """Exercise native instance/theme/log routes with real external launches."""
+    from PyQt6.QtCore import QPoint
+    from PyQt6.QtWidgets import QAbstractButton
+    results, calls, errors = [], [], []
+    old_launch, old_warning = module.launch, module.QMessageBox.warning
+    def record(argv):
+        old_launch(argv)
+        calls.append(argv)
+    module.launch = record
+    module.QMessageBox.warning = lambda parent, title, text: errors.append(text)
+
+    def check(name, action):
+        before, count_errors = len(calls), len(errors)
+        try:
+            action()
+            if len(errors) != count_errors or len(calls) != before + 1:
+                raise AssertionError((calls[before:], errors[count_errors:]))
+            results.append({'case': name, 'ok': True, 'command': calls[-1]})
+        except Exception:
+            results.append({'case': name, 'ok': False, 'error': traceback.format_exc()})
+
+    def button(dialog, name):
+        widget = dialog.findChild(QAbstractButton, name)
+        if widget is None or not widget.property('externalFileManager') or not widget.isEnabled():
+            raise AssertionError('Native button not replaced or not enabled: ' + name)
+        for tabs in dialog.findChildren(QTabWidget):
+            parent = widget.parentWidget()
+            while parent is not None:
+                index = tabs.indexOf(parent)
+                if index >= 0:
+                    tabs.setCurrentIndex(index)
+                    break
+                parent = parent.parentWidget()
+        widget.click()
+
+    def modal(action_name, dialog_name, buttons):
+        seen = []
+        def inspect():
+            dialog = next((w for w in QApplication.topLevelWidgets() if w.objectName() == dialog_name and w.isVisible()), None)
+            if dialog is None: return
+            seen.append(True)
+            try:
+                for name in buttons:
+                    check(dialog_name + ':' + name, lambda n=name: button(dialog, n))
+            finally: dialog.reject()
+        QTimer.singleShot(150, inspect)
+        action = c.window.findChild(module.QAction, action_name)
+        if action is None: raise AssertionError('Native dialog action unavailable')
+        action.trigger()
+        if not seen: raise AssertionError('Native dialog not observed')
+
+    try:
+        modal('actionChange_Game', 'InstanceManagerDialog', ('exploreLocation', 'exploreBaseDirectory', 'exploreGame'))
+        modal('actionSettings', 'SettingsDialog', ('exploreStyles',))
+        def log_menu():
+            view = c.window.findChild(QAbstractItemView, 'logList')
+            view.customContextMenuRequested.emit(QPoint(3, 3))
+            QApplication.processEvents()
+            menu = QApplication.activePopupWidget()
+            if not isinstance(menu, QMenu): raise AssertionError('No native log menu')
+            try:
+                matches = [a for a in menu.actions() if a.text() == c.translated('LogList', '&Open logs folder')]
+                if len(matches) != 1 or not matches[0].property('externalFileManager'):
+                    raise AssertionError('Native log action not replaced')
+                matches[0].trigger()
+            finally: menu.close()
+        check('native-log-menu', log_menu)
+    except Exception:
+        results.append({'case': 'runner', 'ok': False, 'error': traceback.format_exc()})
+    finally:
+        module.launch, module.QMessageBox.warning = old_launch, old_warning
+        (Path(__file__).parent / 'admin-selftest.json').write_text(json.dumps({'results': results, 'errors': errors}, indent=2), encoding='utf-8')
+
 def run(c):
     rows, calls, warnings = ([], [], [])
     old_launch, old_warning = (module.launch, module.QMessageBox.warning)

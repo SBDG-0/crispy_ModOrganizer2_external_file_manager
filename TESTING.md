@@ -105,3 +105,11 @@ The original 17 installed-runtime toolbar/mod-list checks were rerun on 0.2.0 wi
 ## Clean release bundler
 
 Three standard-library packaging tests passed: exact clean archive contents with development source unchanged, deterministic rebuilds plus overwrite protection, and rejection of an unpackaged runtime dependency. The generated 0.2.0 archive was verified by reading back every entry and checking ZIP integrity. The package contains six runtime modules, README.md and CHANGELOG.md; no self-test modules, startup hooks, logs, reports or caches. No established license/notice file currently exists; future ones are preserved automatically. The installed development plugin was not changed or restarted for packaging.
+
+## 0.2.1 remaining Explore routes — 2026-11-21
+
+Added source-verified replacements for InstanceManagerDialog's exploreLocation, exploreBaseDirectory and exploreGame buttons, reading the native location/baseDirectory/gameDir fields at click time. The selected instance is not switched. SettingsDialog's exploreStyles button targets the installation's stylesheets folder. LogList's translated Open logs folder action targets the application dataPath/logs directory.
+
+The shared button replacement preserves native QPushButton versus QToolButton type and enabled-state synchronization. Original buttons remain hidden and owned by MO2, without adding another callback to them. The tool settings dialog now retains only its short introduction and attachment status above the form; the six crossed-out explanatory lines were removed and remain documented in README.md.
+
+Validation: all 29 automated checks passed (26 Qt regression checks and three packaging checks). Five native checks in installed MO2 passed with real external launches: three Instance Manager Explore buttons, Theme Explore, and the log context menu. Each recorded exactly one OneCommander invocation, with no errors; no Explorer window was present after the checks. No instance was switched and native Settings was closed without saving changes. The shortened tool window was visually verified. The local admin-selftest.json report is excluded from Git and clean releases. Opt-in development self-test mode 4 repeats these five live-launch checks.

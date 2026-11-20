@@ -4,6 +4,7 @@ __pycache__/
 *.log.*
 ExternalFileManager/live-selftest.json
 ExternalFileManager/extended-selftest.json
+ExternalFileManager/admin-selftest.json
 README.pre-*.md
 .venv/
 .releases/

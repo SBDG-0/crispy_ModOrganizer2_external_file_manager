@@ -61,7 +61,7 @@ Close MO2. Copy the `ExternalFileManager` folder into MO2's `plugins` directory,
 
 Configure the manager, executable, arguments and optional shortcut under **Tools → External File Manager**. Status information is shown in the same window. Settings also remain available in MO2's Plugins settings. Restart after enabling or disabling interception.
 
-Supported routes include the eleven toolbar folder commands, mod context menus and multiselection/Overwrite, Ctrl+double-click, Ctrl+Enter, mod information Images/Conflicts/Filetree commands, Text/INI editor reveal buttons, and the main Data/Saves/Downloads reveal commands.
+Supported routes include the eleven toolbar folder commands, mod context menus and multiselection/Overwrite, Ctrl+double-click, Ctrl+Enter, mod information Images/Conflicts/Filetree commands, Text/INI editor reveal buttons, the main Data/Saves/Downloads reveal commands, Instance Manager Explore buttons, Theme Explore, and Log Open logs folder.
 
 OneCommander opens a new tab and follows your existing tab-focus preference. Reveal commands open the containing folder without automatically selecting the file. Custom arguments use a JSON string array containing {{path}}, for example `["{{path}}"]`. Invalid settings and missing paths produce an error without an Explorer fallback.
 

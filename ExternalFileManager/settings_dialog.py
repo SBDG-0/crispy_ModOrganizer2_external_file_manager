@@ -42,12 +42,6 @@ class SettingsDialog(QDialog):
         self.shortcut = QLineEdit(str(plugin.setting('shortcut')))
         self.shortcut.setPlaceholderText('Optional, for example Alt+O')
         form.addRow('Mod-list shortcut', self.shortcut)
-        help_text = QLabel('OneCommander opens a new tab and follows your existing tab-focus preference.\n'
-                          'Reveal commands open the containing folder; files are not automatically selected.\n'
-                          'Custom arguments are a JSON array, for example ["{path}"].\n'
-                          'Settings also remain available in MO2’s Plugins settings.')
-        help_text.setWordWrap(True)
-        layout.addWidget(help_text)
         self.manager.currentIndexChanged.connect(self.update_mode)
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         buttons.accepted.connect(self.save)
@@ -62,9 +56,7 @@ class SettingsDialog(QDialog):
         c = self.plugin.controller
         self.status.setText('Opens supported MO2 folder commands directly in your external file manager.\n'
             f'Mod list: {"attached" if c and c.tree else "not attached"} · '
-            f'Folder menu: {"attached" if c and c.button else "not attached"}\n'
-            'Also covers mod information tabs and Data, Saves, and Downloads context menus.\n'
-            'Errors are reported without falling back to Explorer.')
+            f'Folder menu: {"attached" if c and c.button else "not attached"}')
 
     def browse(self):
         filename, _ = QFileDialog.getOpenFileName(self, 'Choose a file manager', self.executable.text(), 'Applications (*.exe)')

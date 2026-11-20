@@ -23,7 +23,7 @@ class ExternalFileManager(mobase.IPluginTool):
     def author(self): return 'SavageBulldogOG'
     def description(self): return 'Open MO2 folders directly in OneCommander or another external file manager.'
     def tooltip(self): return 'Show external file manager status'
-    def version(self): return mobase.VersionInfo(0, 2, 0)
+    def version(self): return mobase.VersionInfo(0, 2, 1)
     def isActive(self): return True
     def icon(self): return QIcon()
     def settings(self):
@@ -68,6 +68,9 @@ class ExternalFileManager(mobase.IPluginTool):
                 elif os.environ.get('CRISPY_EFM_SELFTEST') in ('2', '3'):
                     from .extended_selftest import run
                     QTimer.singleShot(1500, lambda: run(self.controller))
+                elif os.environ.get('CRISPY_EFM_SELFTEST') == '4':
+                    from .extended_selftest import run_admin
+                    QTimer.singleShot(1500, lambda: run_admin(self.controller))
             except Exception: logger.exception('External File Manager initialization failed')
 
     def setParentWidget(self, widget): self.parent = widget

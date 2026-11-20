@@ -9,7 +9,7 @@ import test_interception as base
 app = base.app
 from PyQt6.QtCore import Qt, QDir
 from PyQt6.QtGui import QFileSystemModel, QStandardItemModel, QStandardItem, QAction
-from PyQt6.QtWidgets import QDialog, QVBoxLayout, QToolButton, QLineEdit, QTreeView, QMenu, QWidget
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QToolButton, QLineEdit, QTreeView, QMenu, QWidget, QPushButton, QLabel
 from ExternalFileManager.extended import containing_folder, under
 from ExternalFileManager.settings_dialog import SettingsDialog
 
@@ -141,6 +141,68 @@ class ExtendedTests(unittest.TestCase):
     def test_path_escape_rejected(self):
         with self.assertRaises(ValueError): under(str(self.root), '../other')
         with self.assertRaises(ValueError): containing_folder(self.root / 'missing')
+
+    def test_instance_buttons_follow_selected_instance_fields(self):
+        dialog = QDialog(self.window)
+        dialog.setObjectName('InstanceManagerDialog')
+        layout = QVBoxLayout(dialog)
+        native = []
+        for name, field in (('exploreLocation', 'location'), ('exploreBaseDirectory', 'baseDirectory'), ('exploreGame', 'gameDir')):
+            edit = QLineEdit(str(self.root), dialog)
+            edit.setObjectName(field)
+            layout.addWidget(edit)
+            button = QPushButton('Explore', dialog)
+            button.setObjectName(name)
+            button.clicked.connect(lambda: native.append(True))
+            layout.addWidget(button)
+        dialog.show()
+        app.processEvents()
+        with patch.object(self.c, 'open') as opened:
+            for name, field in (('exploreLocation', 'location'), ('exploreBaseDirectory', 'baseDirectory'), ('exploreGame', 'gameDir')):
+                # MO2 updates these fields when the selected instance changes.
+                dialog.findChild(QLineEdit, field).setText(str(self.file.parent))
+                replacement = dialog.findChild(QPushButton, name)
+                self.assertTrue(replacement.property('externalFileManager'))
+                replacement.click()
+                self.assertEqual(opened.call_args.args[0](), str(self.file.parent))
+            self.assertEqual(opened.call_count, 3)
+        self.assertEqual(native, [])
+        dialog.close()
+        dialog.deleteLater()
+
+    def test_theme_explore_replaces_native_button(self):
+        dialog = QDialog(self.window)
+        dialog.setObjectName('SettingsDialog')
+        layout = QVBoxLayout(dialog)
+        button = QPushButton('Explore...', dialog)
+        button.setObjectName('exploreStyles')
+        native = []
+        button.clicked.connect(lambda: native.append(True))
+        layout.addWidget(button)
+        dialog.show()
+        app.processEvents()
+        with patch.object(self.c, 'open') as opened, patch.object(self.c, 'folder', return_value=str(self.root)):
+            replacement = dialog.findChild(QPushButton, 'exploreStyles')
+            self.assertTrue(replacement.property('externalFileManager'))
+            replacement.click()
+            self.assertEqual(opened.call_args.args[0](), str(self.root))
+            opened.assert_called_once()
+        self.assertEqual(native, [])
+        dialog.close()
+        dialog.deleteLater()
+
+    def test_log_menu_replaces_native_action(self):
+        with patch.object(self.c, 'folder', return_value=str(self.root)):
+            self.trigger_menu(self.view('logList', ['entry']), '&Open logs folder', str(self.root))
+
+    def test_settings_window_keeps_only_short_status(self):
+        values = {'enabled': True, 'manager': 'auto', 'executable': '', 'arguments': '["{path}"]', 'shortcut': ''}
+        plugin = types.SimpleNamespace(parent=self.window, controller=self.c, setting=values.get)
+        dialog = SettingsDialog(plugin)
+        labels = '\n'.join(label.text() for label in dialog.findChildren(QLabel))
+        self.assertIn('Mod list:', labels)
+        for removed in ('Also covers', 'Errors are reported', 'OneCommander opens', 'Reveal commands', 'Custom arguments are', 'Settings also remain'):
+            self.assertNotIn(removed, labels)
 
     def test_text_ini_editor_action_is_replaced(self):
         toolbar = QWidget(self.dialog)

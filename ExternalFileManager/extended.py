@@ -7,7 +7,7 @@ from PyQt6 import sip
 from PyQt6.QtCore import Qt, QEvent, QDir, QSettings
 from PyQt6.QtGui import QAction, QFileSystemModel
 from PyQt6.QtWidgets import (QAbstractItemView, QDialog,
-                            QLineEdit, QToolButton, QWidget)
+                            QLineEdit, QToolButton, QWidget, QAbstractButton, QPushButton)
 
 
 CONFLICT_VIEWS = {'overwriteTree', 'overwrittenTree', 'noConflictTree', 'conflictsAdvancedList'}
@@ -110,6 +110,12 @@ class Extended:
         view = self.source(menu)
         if view is None: return
         name = view.objectName()
+        if name == 'logList':
+            target = self.c.translated('LogList', '&Open logs folder')
+            for action in list(menu.actions()):
+                if action.text() == target and not action.property('externalFileManager'):
+                    self.c.replace(menu, action, lambda: self.c.folder('logs'), 'log-context')
+            return
         specifications = {
             'downloadView': ('DownloadListView', 'Reveal in Explorer'),
             'dataTree': ('FileTree', 'Reveal in E&xplorer'),
@@ -130,6 +136,18 @@ class Extended:
             self.c.replace(menu, action, resolver, 'view:' + name)
 
     def patch_dialog(self, dialog):
+        if dialog.objectName() == 'InstanceManagerDialog':
+            for name, field in (('exploreLocation', 'location'), ('exploreBaseDirectory', 'baseDirectory'), ('exploreGame', 'gameDir')):
+                button = dialog.findChild(QAbstractButton, name)
+                path = dialog.findChild(QLineEdit, field)
+                if button is not None and path is not None and not button.property('externalFileManager'):
+                    self.replace_button(button, lambda p=path: p.text(), 'instance:' + field)
+            return
+        if dialog.objectName() == 'SettingsDialog':
+            button = dialog.findChild(QAbstractButton, 'exploreStyles')
+            if button is not None and not button.property('externalFileManager'):
+                self.replace_button(button, lambda: self.c.folder('stylesheets'), 'settings:theme')
+            return
         if dialog.objectName() != 'ModInfoDialog': return
         for button in dialog.findChildren(QToolButton):
             if button.property('externalFileManager') or button.objectName().endswith('_efm_native'): continue
@@ -153,31 +171,40 @@ class Extended:
                 button.setProperty('externalFileManager', True)
                 continue
             else: continue
-            # Replace the widget, not its clicked signal. The hidden original remains
-            # owned by MO2 so native tab code can keep updating its enabled state.
-            parent = button.parentWidget()
-            layout = parent.layout()
-            if layout is None: continue
-            replacement = QToolButton(parent)
-            replacement.setText(button.text())
-            replacement.setIcon(button.icon())
-            replacement.setToolTip(button.toolTip())
+            self.replace_button(button, resolver, 'mod-info:' + name)
+
+    def replace_button(self, button, resolver, reason):
+        # Keep the hidden native widget alive for MO2's state updates, but give
+        # the user a separate button with no original clicked callback.
+        parent = button.parentWidget()
+        layout = parent.layout()
+        if layout is None: return
+        name = button.objectName()
+        replacement = QToolButton(parent) if isinstance(button, QToolButton) else QPushButton(parent)
+        replacement.setText(button.text())
+        replacement.setIcon(button.icon())
+        replacement.setToolTip(button.toolTip())
+        replacement.setSizePolicy(button.sizePolicy())
+        replacement.setFocusPolicy(button.focusPolicy())
+        if isinstance(button, QToolButton):
             replacement.setToolButtonStyle(button.toolButtonStyle())
-            replacement.setSizePolicy(button.sizePolicy())
             replacement.setAutoRaise(button.autoRaise())
-            replacement.setEnabled(button.isEnabled())
-            replacement.setProperty('externalFileManager', True)
-            if layout.replaceWidget(button, replacement) is None:
-                replacement.deleteLater()
-                continue
-            button.setObjectName(name + '_efm_native')
-            replacement.setObjectName(name)
-            button.hide()
-            replacement.show()
-            replacement.clicked.connect(lambda checked=False, r=resolver, n=name: self.c.open(r, 'mod-info:' + n))
-            key = id(button)
-            self.button_links[key] = (button, replacement)
-            button.destroyed.connect(lambda _, k=key: self.button_links.pop(k, None))
+        else:
+            replacement.setAutoDefault(button.autoDefault())
+            replacement.setDefault(button.isDefault())
+        replacement.setEnabled(button.isEnabled())
+        replacement.setProperty('externalFileManager', True)
+        if layout.replaceWidget(button, replacement) is None:
+            replacement.deleteLater()
+            return
+        button.setObjectName(name + '_efm_native')
+        replacement.setObjectName(name)
+        button.hide()
+        replacement.show()
+        replacement.clicked.connect(lambda checked=False: self.c.open(resolver, reason))
+        key = id(button)
+        self.button_links[key] = (button, replacement)
+        button.destroyed.connect(lambda _, k=key: self.button_links.pop(k, None))
 
     def event(self, obj, event):
         kind = event.type()

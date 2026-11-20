@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1 — 2026-11-21
+
+- Redirect Instance Manager's location, base folder, and game location Explore buttons to the configured external manager.
+- Redirect Settings → Theme → Explore and Log → Open logs folder.
+- Retain native button enabled-state updates and resolve Instance Manager paths at click time after selection changes.
+- Simplify the tool settings window by removing the extra explanations; keep the short introduction and attachment status. Details remain in the documentation.
+
 ## 0.2.0 — 2026-11-20
 
 - Added a reproducible clean-release bundler with an explicit runtime allowlist, removal of packaged self-test hooks, archive verification and SHA-256 checksums.
