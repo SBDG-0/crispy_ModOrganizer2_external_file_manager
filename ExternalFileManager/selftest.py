@@ -58,6 +58,7 @@ def run(c):
             info = c.organizer.modList().getMod(names[identity])
             if info: info_rows.append((index, info))
     regular = [i for i, info in info_rows if not (info.isSeparator() or info.isForeign() or info.isOverwrite() or info.isBackup())]
+    saved_expansion = [(i, tree.isExpanded(i)) for i, _ in info_rows]
     overwrite = [i for i, info in info_rows if info.isOverwrite()]
     backups = [i for i, info in info_rows if info.isBackup()]
 
@@ -149,6 +150,8 @@ def run(c):
         c.shortcuts = original_shortcuts
         tree.selectionModel().select(saved_selection, QItemSelectionModel.SelectionFlag.ClearAndSelect)
         tree.selectionModel().setCurrentIndex(saved_current, QItemSelectionModel.SelectionFlag.NoUpdate)
+        for index, expanded in saved_expansion:
+            tree.setExpanded(index, expanded)
         tree.verticalScrollBar().setValue(saved_scroll)
         report = {'runtime': 'Installed MO2 / embedded Python / PyQt6', 'results': results,
                   'captured_commands': calls, 'external_processes_started_by_test': 0}
