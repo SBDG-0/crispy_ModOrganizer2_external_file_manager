@@ -1,4 +1,4 @@
-# Crispy MO2 External File Manager
+# Mod Organizer 2 - External File Manager
 
 ## Description
 
